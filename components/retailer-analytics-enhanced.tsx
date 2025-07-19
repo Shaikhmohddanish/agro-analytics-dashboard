@@ -158,11 +158,27 @@ export default function RetailerAnalyticsEnhanced() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Months</SelectItem>
-                {filterOptions.months.map((month) => (
-                  <SelectItem key={month} value={month}>
-                    {month}
-                  </SelectItem>
-                ))}
+                {[...filterOptions.months]
+                  .sort((a, b) => {
+                    // Parse the month strings in format "MMM YYYY" (e.g., "Jan 2023")
+                    const [monthA, yearA] = a.split(" ");
+                    const [monthB, yearB] = b.split(" ");
+                    
+                    // Compare years first
+                    if (yearA !== yearB) {
+                      return parseInt(yearA) - parseInt(yearB);
+                    }
+                    
+                    // If years are the same, compare months
+                    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    return months.indexOf(monthA) - months.indexOf(monthB);
+                  })
+                  .map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {month}
+                    </SelectItem>
+                  ))
+                }
               </SelectContent>
             </Select>
           </div>

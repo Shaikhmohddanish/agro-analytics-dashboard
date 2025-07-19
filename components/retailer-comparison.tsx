@@ -195,6 +195,32 @@ export default function RetailerComparison() {
   const [selectedRetailer2, setSelectedRetailer2] = useState("retailer2")
   const [activeTab, setActiveTab] = useState("overview")
   const [chartType, setChartType] = useState("bar")
+  
+  // Check if same retailer is selected
+  const isSameRetailer = selectedRetailer1 === selectedRetailer2;
+  
+  // Handle retailer selection changes
+  const handleRetailer1Change = (value: string) => {
+    setSelectedRetailer1(value);
+    if (value === selectedRetailer2) {
+      toast({
+        title: "Same retailer selected",
+        description: "You're comparing the same retailer. Consider choosing different retailers for meaningful comparison.",
+        variant: "default",
+      });
+    }
+  };
+  
+  const handleRetailer2Change = (value: string) => {
+    setSelectedRetailer2(value);
+    if (value === selectedRetailer1) {
+      toast({
+        title: "Same retailer selected",
+        description: "You're comparing the same retailer. Consider choosing different retailers for meaningful comparison.",
+        variant: "default",
+      });
+    }
+  };
 
   // Get retailer data
   const ret1Data = retailerData[selectedRetailer1 as keyof typeof retailerData]
@@ -370,6 +396,45 @@ export default function RetailerComparison() {
             </div>
           </div>
         </CardHeader>
+        <CardContent className="border-t border-white/10 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-blue-100">Select retailers to compare:</div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-blue-300"></div>
+                <Select value={selectedRetailer1} onValueChange={handleRetailer1Change}>
+                  <SelectTrigger className={`w-32 sm:w-40 bg-white/10 border-white/20 text-white ${isSameRetailer ? 'ring-2 ring-orange-400' : ''}`}>
+                    <SelectValue placeholder="Retailer A" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="retailer1">Retailer A</SelectItem>
+                    <SelectItem value="retailer2">Retailer B</SelectItem>
+                    <SelectItem value="retailer3">Retailer C</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <span className={`${isSameRetailer ? 'text-orange-300 font-bold' : 'text-white/70'}`}>vs</span>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-green-300"></div>
+                <Select value={selectedRetailer2} onValueChange={handleRetailer2Change}>
+                  <SelectTrigger className={`w-32 sm:w-40 bg-white/10 border-white/20 text-white ${isSameRetailer ? 'ring-2 ring-orange-400' : ''}`}>
+                    <SelectValue placeholder="Retailer B" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="retailer1">Retailer A</SelectItem>
+                    <SelectItem value="retailer2">Retailer B</SelectItem>
+                    <SelectItem value="retailer3">Retailer C</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {isSameRetailer && (
+                <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">
+                  Same Retailer Selected
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Navigation Tabs */}
@@ -426,24 +491,18 @@ export default function RetailerComparison() {
             ))}
           </div>
 
-          {/* Retailer Selection and Comparison */}
+          {/* Retailer Details Comparison */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Retailer 1 */}
             <Card className="border-2 border-blue-200">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <Select value={selectedRetailer1} onValueChange={setSelectedRetailer1}>
-                    <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="retailer1">Retailer A</SelectItem>
-                      <SelectItem value="retailer2">Retailer B</SelectItem>
-                      <SelectItem value="retailer3">Retailer C</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 rounded-full bg-blue-600"></div>
+                    <h3 className="text-lg font-medium">{ret1Data.name}</h3>
+                  </div>
                   <Badge variant="outline" className="text-blue-600 border-blue-600">
-                    {ret1Data.name}
+                    Retailer A
                   </Badge>
                 </div>
               </CardHeader>
@@ -492,18 +551,12 @@ export default function RetailerComparison() {
             <Card className="border-2 border-green-200">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <Select value={selectedRetailer2} onValueChange={setSelectedRetailer2}>
-                    <SelectTrigger className="w-48 bg-green-600 text-white border-green-600">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="retailer1">Retailer A</SelectItem>
-                      <SelectItem value="retailer2">Retailer B</SelectItem>
-                      <SelectItem value="retailer3">Retailer C</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 rounded-full bg-green-600"></div>
+                    <h3 className="text-lg font-medium">{ret2Data.name}</h3>
+                  </div>
                   <Badge variant="outline" className="text-green-600 border-green-600">
-                    {ret2Data.name}
+                    Retailer B
                   </Badge>
                 </div>
               </CardHeader>
@@ -940,7 +993,10 @@ export default function RetailerComparison() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Retailer 1 Segments */}
                 <div>
-                  <h4 className="text-sm font-medium mb-4 text-center">{ret1Data.name} Customer Segments</h4>
+                  <h4 className="text-sm font-medium mb-4 text-center flex items-center justify-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-blue-600"></div>
+                    <span>{ret1Data.name} Customer Segments</span>
+                  </h4>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -983,7 +1039,10 @@ export default function RetailerComparison() {
 
                 {/* Retailer 2 Segments */}
                 <div>
-                  <h4 className="text-sm font-medium mb-4 text-center">{ret2Data.name} Customer Segments</h4>
+                  <h4 className="text-sm font-medium mb-4 text-center flex items-center justify-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-green-600"></div>
+                    <span>{ret2Data.name} Customer Segments</span>
+                  </h4>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
