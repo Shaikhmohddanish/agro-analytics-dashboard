@@ -113,10 +113,31 @@ export default function AnalyticsPage() {
 
         {/* Main Analytics Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          {/* Mobile Tab Selector */}
+          <div className="md:hidden mb-4">
+            <select 
+              className="w-full p-2 border rounded-md bg-white" 
+              value={activeTab}
+              onChange={(e) => {
+                setActiveTab(e.target.value);
+                if (e.target.value === "products") {
+                  setProductsTabLoaded(true);
+                }
+              }}
+            >
+              <option value="retailers">Retailers</option>
+              <option value="products">Products</option>
+              <option value="advanced">Advanced</option>
+              <option value="segmentation">Segmentation</option>
+              <option value="comparison">Comparison</option>
+            </select>
+          </div>
+          
+          {/* Desktop Tab List */}
+          <TabsList className="hidden md:grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="retailers" className="flex items-center gap-2">
               <Store className="h-4 w-4" />
-              Retailers
+              <span>Retailers</span>
             </TabsTrigger>
             <TabsTrigger 
               value="products" 
@@ -125,19 +146,19 @@ export default function AnalyticsPage() {
               onClick={() => setProductsTabLoaded(true)} // Ensure loading on click
             >
               <Package className="h-4 w-4" />
-              Products
+              <span>Products</span>
             </TabsTrigger>
             <TabsTrigger value="advanced" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              Advanced
+              <span>Advanced</span>
             </TabsTrigger>
             <TabsTrigger value="segmentation" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Segmentation
+              <span>Segmentation</span>
             </TabsTrigger>
             <TabsTrigger value="comparison" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              Comparison
+              <span>Comparison</span>
             </TabsTrigger>
           </TabsList>
 

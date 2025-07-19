@@ -4,6 +4,9 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* For extra small screens */
@@ -16,6 +19,41 @@ body {
   }
   .xs\:gap-0 {
     gap: 0;
+  }
+  .xs\:text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  .xs\:p-2 {
+    padding: 0.5rem;
+  }
+  .xs\:py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+}
+
+/* Global mobile optimizations */
+@media (max-width: 768px) {
+  .recharts-responsive-container {
+    min-height: 250px !important;
+  }
+  
+  /* Improve tap targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better spacing for mobile */
+  .card-mobile-padding {
+    padding: 1rem !important;
+  }
+  
+  /* Ensure content doesn't overflow */
+  .mobile-overflow-wrap {
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 }
 

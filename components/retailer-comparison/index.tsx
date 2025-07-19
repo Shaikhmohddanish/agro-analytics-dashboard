@@ -124,25 +124,27 @@ export default function RetailerComparison() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 text-purple-600" />
-            Retailer Comparison
+          <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-6 w-6 text-purple-600" />
+              <span>Retailer Comparison</span>
+            </div>
             <Button 
               variant="outline" 
               size="sm" 
-              className="ml-auto" 
+              className="mt-2 sm:mt-0 sm:ml-auto w-full sm:w-auto" 
               onClick={handleRefreshData}
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Refreshing...
+                  <span>Refreshing...</span>
                 </>
               ) : (
                 <>
                   <ArrowUpRight className="mr-2 h-4 w-4" />
-                  Refresh Data
+                  <span>Refresh Data</span>
                 </>
               )}
             </Button>
@@ -164,7 +166,20 @@ export default function RetailerComparison() {
 
       {/* Navigation Tabs */}
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-4">
+        {/* Mobile Tab Selector */}
+        <div className="md:hidden mb-4">
+          <select 
+            className="w-full p-2 border rounded-md bg-white" 
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+          >
+            <option value="overview">Overview</option>
+            <option value="trends">Monthly Trends</option>
+          </select>
+        </div>
+        
+        {/* Desktop Tab List */}
+        <TabsList className="hidden md:grid grid-cols-2 mb-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="trends">Monthly Trends</TabsTrigger>
         </TabsList>

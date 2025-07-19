@@ -34,33 +34,41 @@ export function TrendsTab({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={trendData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`₹${formatNumber(value as number)}`, "Revenue"]} />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="retailer1Revenue"
-                  name={`${ret1Data.name} Revenue`}
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="retailer2Revenue"
-                  name={`${ret2Data.name} Revenue`}
-                  stroke="#10b981"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="h-80 sm:h-96 overflow-x-auto overflow-y-hidden pb-4">
+            <div className="min-w-[320px] h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={trendData}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 10 }}
+                    height={40}
+                  />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Tooltip formatter={(value) => [`₹${formatNumber(value as number)}`, "Revenue"]} />
+                  <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="retailer1Revenue"
+                    name={`${ret1Data.name} Revenue`}
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="retailer2Revenue"
+                    name={`${ret2Data.name} Revenue`}
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </CardContent>
       </Card>

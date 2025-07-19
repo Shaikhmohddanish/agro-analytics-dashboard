@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { BarChart3, Menu, Home, TrendingUp, Settings, User } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useBreakpoint } from "@/hooks/use-mobile"
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
@@ -17,17 +18,27 @@ const navigation = [
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { breakpoint, isMobile, isXs } = useBreakpoint()
+
+  // Close mobile menu when resizing to desktop
+  useEffect(() => {
+    if (!isMobile && isOpen) {
+      setIsOpen(false)
+    }
+  }, [isMobile, isOpen])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2 sm:px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <BarChart3 className="h-6 w-6 text-white" />
+            <div className="p-1.5 sm:p-2 bg-blue-600 rounded-lg">
+              <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">Analytics Pro</span>
+            <span className={cn("font-bold text-gray-900", isXs ? "text-base" : "text-xl")}>
+              {isXs ? "Analytics" : "Analytics Pro"}
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -64,12 +75,12 @@ export default function Header() {
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="focus-visible:ring-offset-0 focus-visible:ring-transparent">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent side="right" className="w-[85vw] max-w-[400px]">
               <div className="flex flex-col space-y-4 mt-6">
                 <div className="flex items-center space-x-2 mb-6">
                   <div className="p-2 bg-blue-600 rounded-lg">
