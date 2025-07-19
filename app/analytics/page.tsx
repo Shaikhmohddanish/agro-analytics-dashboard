@@ -4,6 +4,8 @@ import { useState, lazy, Suspense } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart3, Store, Package, Users, TrendingUp } from "lucide-react"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
 import AdvancedAnalytics from "@/components/advanced-analytics"
 import CustomerSegmentation from "@/components/customer-segmentation"
 import RetailerComparison from "@/components/retailer-comparison"
@@ -23,21 +25,21 @@ const ProductTabLoading = () => (
           <div>
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-purple-600" />
-              <div className="h-6 w-48 bg-gray-200 animate-pulse rounded"></div>
+              <div className="h-6 w-32 sm:w-48 bg-gray-200 animate-pulse rounded"></div>
             </div>
-            <div className="h-4 w-72 bg-gray-100 animate-pulse rounded mt-2"></div>
+            <div className="h-4 w-48 sm:w-72 bg-gray-100 animate-pulse rounded mt-2"></div>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-10 bg-gray-100 animate-pulse rounded"></div>
           ))}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-32 bg-gray-100 animate-pulse rounded"></div>
+            <div key={i} className="h-24 sm:h-32 bg-gray-100 animate-pulse rounded"></div>
           ))}
         </div>
       </CardContent>
@@ -58,9 +60,11 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        {/* Header */}
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <Header />
+      <div className="flex-1 py-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-600 rounded-lg">
@@ -73,15 +77,15 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Retailers</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Farmers</CardTitle>
                 <Store className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">Active retailers</p>
+                <p className="text-xs text-muted-foreground">Active agricultural partners</p>
               </CardContent>
             </Card>
             <Card>
@@ -91,12 +95,12 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">48</div>
-                <p className="text-xs text-muted-foreground">Unique products</p>
+                <p className="text-xs text-muted-foreground">Unique agricultural products</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="sm:col-span-2 md:col-span-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Yields</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -161,6 +165,8 @@ export default function AnalyticsPage() {
           </TabsContent>
         </Tabs>
       </div>
+      </div>
+      <Footer />
     </div>
   )
 }

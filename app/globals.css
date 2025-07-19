@@ -6,6 +6,19 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* For extra small screens */
+@media (max-width: 475px) {
+  .xs\:flex-row {
+    flex-direction: row;
+  }
+  .xs\:justify-start {
+    justify-content: flex-start;
+  }
+  .xs\:gap-0 {
+    gap: 0;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -3,13 +3,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
 import { Settings, User, Bell, Shield, Database } from "lucide-react"
 
 export default function SettingsPage() {
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 py-8">
-      <div className="max-w-4xl mx-auto px-4 md:px-8">
-        <div className="mb-8">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <Header />
+      <div className="flex-1 py-8">
+        <div className="max-w-4xl mx-auto px-4 md:px-8">
+          <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-600 rounded-lg">
               <Settings className="h-6 w-6 text-white" />
@@ -135,6 +139,8 @@ export default function SettingsPage() {
           </Card>
         </div>
       </div>
+      </div>
+      <Footer />
     </div>
   )
 }
