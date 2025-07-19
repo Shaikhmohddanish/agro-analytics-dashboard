@@ -197,10 +197,33 @@ export class DataService {
     return Array.from(retailerMap.values())
   }
 
-  getProductAnalytics(): ProductAnalytics[] {
-    const productMap = new Map<string, ProductAnalytics>()
+  // Cache for product analytics data
+  private productAnalyticsCache: ProductAnalytics[] | null = null;
+  private calculationPromise: Promise<ProductAnalytics[]> | null = null;
+  private lastFilterOptions: any = null;
 
+  getProductAnalytics(): ProductAnalytics[] {
+    // Use cached data if available
+    if (this.productAnalyticsCache) {
+      return this.productAnalyticsCache;
+    }
+    
+    // Start async calculation in background if not already started
+    if (!this.calculationPromise) {
+      this.calculationPromise = this.calculateProductAnalyticsAsync();
+    }
+
+    const productMap = new Map<string, ProductAnalytics>()
+    // Pre-calculate all months to avoid repeated date parsing
+    const rowToMonth = new Map<string, string>();
+
+    // First pass: populate basic product structure
     this.data.forEach((row) => {
+      // Calculate month string once and cache it
+      if (!rowToMonth.has(row.orderDate)) {
+        rowToMonth.set(row.orderDate, new Date(row.orderDate).toLocaleDateString("en-US", { year: "numeric", month: "short" }));
+      }
+      
       if (!productMap.has(row.productName)) {
         productMap.set(row.productName, {
           name: row.productName,
@@ -221,7 +244,7 @@ export class DataService {
       })
     })
 
-    // Calculate derived analytics
+    // Process each product independently
     productMap.forEach((product) => {
       // Calculate top buyers
       const buyerMap = new Map<string, { quantity: number; value: number; frequency: number }>()
@@ -245,10 +268,10 @@ export class DataService {
         .sort((a, b) => b.totalValue - a.totalValue)
         .slice(0, 10)
 
-      // Calculate monthly movement
+      // Calculate monthly movement - use cached month values
       const monthlyMap = new Map<string, { quantity: number; value: number }>()
       product.movementTimeline.forEach((movement) => {
-        const month = new Date(movement.date).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+        const month = rowToMonth.get(movement.date)!;
         if (!monthlyMap.has(month)) {
           monthlyMap.set(month, { quantity: 0, value: 0 })
         }
@@ -257,46 +280,122 @@ export class DataService {
         monthly.value += movement.value
       })
 
-      product.monthlyMovement = Array.from(monthlyMap.entries()).map(([month, data]) => ({
-        month,
-        quantity: data.quantity,
-        value: data.value,
-      }))
+      product.monthlyMovement = Array.from(monthlyMap.entries())
+        .map(([month, data]) => ({
+          month,
+          quantity: data.quantity,
+          value: data.value,
+        }))
+        .sort((a, b) => {
+          // Sort by date for better visualization
+          const dateA = new Date(a.month);
+          const dateB = new Date(b.month);
+          return dateA.getTime() - dateB.getTime();
+        });
 
-      // Calculate product clubbing (simplified)
-      const clubbingMap = new Map<string, Map<string, number>>()
-      this.data.forEach((row) => {
-        if (row.productName === product.name) {
-          const month = new Date(row.orderDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })
-          if (!clubbingMap.has(month)) {
-            clubbingMap.set(month, new Map())
-          }
-
-          // Find other products ordered by same retailer in same month
-          const sameMonthOrders = this.data.filter(
-            (r) =>
-              r.retailerName === row.retailerName &&
-              new Date(r.orderDate).toLocaleDateString("en-US", { year: "numeric", month: "short" }) === month &&
-              r.productName !== product.name,
-          )
-
-          sameMonthOrders.forEach((order) => {
-            const monthMap = clubbingMap.get(month)!
-            monthMap.set(order.productName, (monthMap.get(order.productName) || 0) + 1)
-          })
+      // Optimize product clubbing calculation - the most expensive operation
+      // Use a more efficient approach to calculate clubbing
+      const clubbingByMonth = new Map<string, Map<string, number>>();
+      
+      // Create a lookup index for faster access
+      const retailerMonthIndex = new Map<string, string[]>();
+      
+      this.data.forEach(row => {
+        const month = rowToMonth.get(row.orderDate)!;
+        const key = `${row.retailerName}|${month}`;
+        
+        if (!retailerMonthIndex.has(key)) {
+          retailerMonthIndex.set(key, []);
         }
-      })
-
-      product.clubbing = Array.from(clubbingMap.entries()).map(([month, products]) => ({
-        month,
-        products: Array.from(products.entries())
-          .map(([name, frequency]) => ({ name, frequency }))
-          .sort((a, b) => b.frequency - a.frequency)
-          .slice(0, 5),
-      }))
+        retailerMonthIndex.get(key)!.push(row.productName);
+      });
+      
+      // Now compute clubbing more efficiently
+      product.movementTimeline.forEach(movement => {
+        const month = rowToMonth.get(movement.date)!;
+        const key = `${movement.retailer}|${month}`;
+        
+        if (!clubbingByMonth.has(month)) {
+          clubbingByMonth.set(month, new Map());
+        }
+        
+        // Get all products ordered by this retailer in this month
+        const productsInMonth = retailerMonthIndex.get(key) || [];
+        
+        productsInMonth.forEach(otherProduct => {
+          if (otherProduct !== product.name) {
+            const monthMap = clubbingByMonth.get(month)!;
+            monthMap.set(otherProduct, (monthMap.get(otherProduct) || 0) + 1);
+          }
+        });
+      });
+      
+      product.clubbing = Array.from(clubbingByMonth.entries())
+        .map(([month, products]) => ({
+          month,
+          products: Array.from(products.entries())
+            .map(([name, frequency]) => ({ name, frequency }))
+            .sort((a, b) => b.frequency - a.frequency)
+            .slice(0, 5),
+        }))
+        .sort((a, b) => {
+          // Sort by date for better visualization
+          const dateA = new Date(a.month);
+          const dateB = new Date(b.month);
+          return dateA.getTime() - dateB.getTime();
+        });
     })
 
-    return Array.from(productMap.values())
+    // Cache the result for future calls
+    this.productAnalyticsCache = Array.from(productMap.values());
+    return this.productAnalyticsCache;
+  }
+  
+  // Asynchronous calculation method for better UI responsiveness
+  private async calculateProductAnalyticsAsync(): Promise<ProductAnalytics[]> {
+    return new Promise((resolve) => {
+      // Use setTimeout to avoid blocking the main thread
+      setTimeout(() => {
+        const productData = this.getProductAnalytics();
+        resolve(productData);
+      }, 0);
+    });
+  }
+  
+  // Optimized method to get product analytics with pre-calculated metrics
+  getProductAnalyticsLite(): ProductAnalytics[] {
+    // Return a lightweight version with only essential data if full data is not ready
+    if (!this.productAnalyticsCache) {
+      // Create a simplified version with minimal data for fast initial rendering
+      const productMap = new Map<string, ProductAnalytics>();
+      
+      // Group by product name for basic statistics
+      this.data.forEach((row) => {
+        if (!productMap.has(row.productName)) {
+          productMap.set(row.productName, {
+            name: row.productName,
+            movementTimeline: [],
+            clubbing: [],
+            topBuyers: [],
+            monthlyMovement: [],
+          });
+        }
+        
+        const product = productMap.get(row.productName)!;
+        product.movementTimeline.push({
+          date: row.orderDate,
+          quantity: row.orderQuantity,
+          retailer: row.retailerName,
+          value: row.orderValue,
+        });
+      });
+      
+      // Return the lightweight product data
+      return Array.from(productMap.values());
+    }
+    
+    // Return full cached data if available
+    return this.productAnalyticsCache;
   }
 
   getFilterOptions() {

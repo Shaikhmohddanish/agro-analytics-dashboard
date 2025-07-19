@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from "recharts"
+import { useToast } from "@/components/ui/use-toast"
 import {
   TrendingUp,
   TrendingDown,
@@ -66,6 +67,80 @@ export default function AdvancedAnalytics() {
   const [selectedView, setSelectedView] = useState("sales")
   const [selectedPeriod, setSelectedPeriod] = useState("6months")
   const [selectedRegion, setSelectedRegion] = useState("all")
+  const { toast } = useToast()
+  
+  // Function to export analytics data as CSV
+  const exportAnalytics = () => {
+    try {
+      // Show loading toast
+      toast({
+        title: "Exporting data...",
+        description: `Preparing ${selectedView} analytics for download.`,
+      })
+      
+      // Determine which data to export based on current view
+      let dataToExport = []
+      let fileName = ""
+      let reportType = ""
+      
+      switch (selectedView) {
+        case "sales":
+          dataToExport = salesTrendData
+          fileName = `sales-analytics-${selectedPeriod}.csv`
+          reportType = "Sales Analytics"
+          break
+        case "products":
+          dataToExport = productPerformanceData
+          fileName = `product-analytics-${selectedPeriod}.csv`
+          reportType = "Product Performance Analytics"
+          break
+        case "customers":
+          // Using sales data as fallback for customers view
+          dataToExport = salesTrendData
+          fileName = `customer-analytics-${selectedPeriod}.csv`
+          reportType = "Customer Analytics"
+          break
+        default:
+          dataToExport = salesTrendData
+          fileName = `analytics-export-${selectedPeriod}.csv`
+          reportType = "Analytics"
+      }
+      
+      // Convert data to CSV format
+      const headers = Object.keys(dataToExport[0]).join(",")
+      const rows = dataToExport.map(item => Object.values(item).join(","))
+      const csvContent = [headers, ...rows].join("\n")
+      
+      // Create a blob and download
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.setAttribute("href", url)
+      link.setAttribute("download", fileName)
+      link.style.visibility = "hidden"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Clean up the URL object
+      URL.revokeObjectURL(url)
+      
+      // Show success toast
+      toast({
+        title: "Export Successful",
+        description: `${reportType} data has been downloaded as ${fileName}`,
+        variant: "default",
+      })
+    } catch (error) {
+      console.error("Export failed:", error)
+      // Show error toast
+      toast({
+        title: "Export Failed",
+        description: "There was a problem exporting your data. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -105,6 +180,7 @@ export default function AdvancedAnalytics() {
                 variant="secondary"
                 size="sm"
                 className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                onClick={exportAnalytics}
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export

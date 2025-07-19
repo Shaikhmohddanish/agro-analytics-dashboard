@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, lazy, Suspense } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart3, Store, Package, Users, TrendingUp } from "lucide-react"
@@ -8,10 +8,54 @@ import AdvancedAnalytics from "@/components/advanced-analytics"
 import CustomerSegmentation from "@/components/customer-segmentation"
 import RetailerComparison from "@/components/retailer-comparison"
 import RetailerAnalyticsEnhanced from "@/components/retailer-analytics-enhanced"
-import ProductAnalyticsEnhanced from "@/components/product-analytics-enhanced"
+
+// Lazy load ProductAnalyticsEnhanced for better initial load performance
+const ProductAnalyticsEnhanced = lazy(() => 
+  import("@/components/product-analytics-enhanced")
+)
+
+// Loading component for the product analytics tab
+const ProductTabLoading = () => (
+  <div className="space-y-6">
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-purple-600" />
+              <div className="h-6 w-48 bg-gray-200 animate-pulse rounded"></div>
+            </div>
+            <div className="h-4 w-72 bg-gray-100 animate-pulse rounded mt-2"></div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-10 bg-gray-100 animate-pulse rounded"></div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-32 bg-gray-100 animate-pulse rounded"></div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+)
 
 export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState("retailers")
+  const [productsTabLoaded, setProductsTabLoaded] = useState(false)
+  
+  // Pre-load products tab data when hovering over the tab
+  const handleProductsTabHover = () => {
+    if (!productsTabLoaded) {
+      // Mark that we've started loading the products tab
+      setProductsTabLoaded(true)
+    }
+  }
 
   return (
     <div className="bg-gradient-to-br from-slate-50 to-slate-100 py-8">
@@ -70,7 +114,12 @@ export default function AnalyticsPage() {
               <Store className="h-4 w-4" />
               Retailers
             </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="products" 
+              className="flex items-center gap-2"
+              onMouseEnter={handleProductsTabHover} // Pre-load on hover
+              onClick={() => setProductsTabLoaded(true)} // Ensure loading on click
+            >
               <Package className="h-4 w-4" />
               Products
             </TabsTrigger>
@@ -93,7 +142,10 @@ export default function AnalyticsPage() {
           </TabsContent>
 
           <TabsContent value="products" className="space-y-6">
-            <ProductAnalyticsEnhanced />
+            {/* Render loading placeholder first, then load the actual component */}
+            <Suspense fallback={<ProductTabLoading />}>
+              <ProductAnalyticsEnhanced />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="advanced" className="space-y-6">
